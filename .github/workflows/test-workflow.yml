@@ -9,20 +9,37 @@ on:
 jobs:
   zap_scan:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Run vulnerable app
+
+      # Create a user-defined Docker network
+      - name: Create Docker network
+        run: docker network create zapnet || true
+
+      # Run vulnerable app on the network
+      - name: Run Juice Shop
         run: |
-          docker run -d -p 3000:3000 bkimminich/juice-shop
+          docker run -d --network zapnet --name juice-shop -p 3000:3000 bkimminich/juice-shop
+
+      # Wait for the app to start
       - name: Wait for app
         run: sleep 20
+
+      # Run ZAP baseline scan
       - name: Run ZAP Scan
         run: |
-          docker run --rm -v $(pwd):/zap/wrk -u zap -i ghcr.io/zaproxy/zaproxy:stable \
+          docker run --rm \
+            -u zap \
+            --network zapnet \
+            -v ${{ github.workspace }}/zap-reports:/zap/wrk:rw \
+            -i ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py \
-            -t http://host.docker.internal:3000 \
+            -t http://juice-shop:3000 \
             -r /zap/wrk/zap_report.html
+
+      # Upload the report to DefectDojo
       - name: Upload to DefectDojo
         run: |
           curl -X POST "$DEFECTDOJO_URL/api/v2/import-scan/" \
@@ -32,7 +49,7 @@ jobs:
             -F 'active=true' \
             -F 'verified=false' \
             -F 'engagement=1' \
-            -F 'file=@zap_report.html'
+            -F 'file=@zap-reports/zap_report.html'
         env:
           DEFECTDOJO_URL: ${{ secrets.DEFECTDOJO_URL }}
           DEFECTDOJO_API_KEY: ${{ secrets.DEFECTDOJO_API_KEY }}
