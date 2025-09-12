@@ -3,7 +3,7 @@ name: OWASP ZAP Scan + DefectDojo Upload
 on:
   workflow_dispatch:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
 
 jobs:
@@ -14,11 +14,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Create a user-defined Docker network
+      # Create Docker network
       - name: Create Docker network
         run: docker network create zapnet || true
 
-      # Run vulnerable app on the network
+      # Run vulnerable app (Juice Shop)
       - name: Run Juice Shop
         run: |
           docker run -d --network zapnet --name juice-shop -p 3000:3000 bkimminich/juice-shop
@@ -26,6 +26,12 @@ jobs:
       # Wait for the app to start
       - name: Wait for app
         run: sleep 20
+
+      # Prepare report folder with correct permissions
+      - name: Prepare report folder
+        run: |
+          mkdir -p ${{ github.workspace }}/zap-reports
+          chmod 777 ${{ github.workspace }}/zap-reports
 
       # Run ZAP baseline scan
       - name: Run ZAP Scan
@@ -39,7 +45,7 @@ jobs:
             -t http://juice-shop:3000 \
             -r /zap/wrk/zap_report.html
 
-      # Upload the report to DefectDojo
+      # Upload report to DefectDojo
       - name: Upload to DefectDojo
         run: |
           curl -X POST "$DEFECTDOJO_URL/api/v2/import-scan/" \
