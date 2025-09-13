@@ -3,7 +3,7 @@ name: OWASP ZAP Scan + DefectDojo Upload
 on:
   workflow_dispatch:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
 
 jobs:
