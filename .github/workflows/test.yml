@@ -44,7 +44,7 @@ jobs:
             -i ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py \
             -t http://juice-shop:3000 \
-            -r zap_report.xml
+            -x zap_report.xml
 
       # Upload report to DefectDojo
       - name: Upload to DefectDojo
