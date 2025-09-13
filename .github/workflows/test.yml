@@ -3,7 +3,7 @@ name: OWASP ZAP Scan + DefectDojo Upload
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [ master ]
   pull_request:
 
 jobs:
@@ -43,7 +43,7 @@ jobs:
             -i ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py \
             -t http://juice-shop:3000 \
-            -r /zap/wrk/zap_report.html
+            -r zap_report.html
 
       # Upload report to DefectDojo
       - name: Upload to DefectDojo
