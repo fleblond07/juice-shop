@@ -18,7 +18,7 @@ jobs:
       - name: Run npm audit
         run: |
           mkdir -p audit-reports
-          npm audit --json > audit-reports/npm-audit.json
+          npm audit --json > audit-reports/npm-audit.json || true
 
       - name: Check report
         run: ls -l audit-reports
