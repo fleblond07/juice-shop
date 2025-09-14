@@ -1,29 +1,42 @@
-  - name: Setup Node.js
-    uses: actions/setup-node@v4
-    with:
-      node-version: '22'
+name: Dependency CVE Scan
 
-  - name: Install CycloneDX tool
-    run: npm install -g @cyclonedx/cyclonedx-npm
+on:
+  push:
+    branches: [ master ]
 
-  - name: Generate SBOM
-    run: |
-      mkdir -p audit-reports
-      cyclonedx-npm --output-format json --output-file audit-reports/sbom.json
+jobs:
+  dependency-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-  - name: Check report
-    run: ls -l audit-reports
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
 
-  - name: Upload to DefectDojo
-    run: |
-      curl -X POST "$DEFECTDOJO_URL/api/v2/import-scan/" \
-        -H "Authorization: Token $DEFECTDOJO_API_KEY" \
-        -F 'scan_type=CycloneDX' \
-        -F 'minimum_severity=Low' \
-        -F 'active=true' \
-        -F 'verified=false' \
-        -F "engagement=1" \
-        -F 'file=@audit-reports/sbom.json'
-    env:
-      DEFECTDOJO_URL: ${{ secrets.DEFECTDOJO_URL }}
-      DEFECTDOJO_API_KEY: ${{ secrets.DEFECTDOJO_API_KEY }}
+      - name: Install CycloneDX tool
+        run: npm install -g @cyclonedx/cyclonedx-npm
+
+      - name: Generate SBOM
+        run: |
+          mkdir -p audit-reports
+          cyclonedx-npm --output-format json --output-file audit-reports/sbom.json
+
+      - name: Check report
+        run: ls -l audit-reports
+
+      - name: Upload to DefectDojo
+        run: |
+          curl -X POST "$DEFECTDOJO_URL/api/v2/import-scan/" \
+            -H "Authorization: Token $DEFECTDOJO_API_KEY" \
+            -F 'scan_type=CycloneDX' \
+            -F 'minimum_severity=Low' \
+            -F 'active=true' \
+            -F 'verified=false' \
+            -F "engagement=1" \
+            -F 'file=@audit-reports/sbom.json'
+        env:
+          DEFECTDOJO_URL: ${{ secrets.DEFECTDOJO_URL }}
+          DEFECTDOJO_API_KEY: ${{ secrets.DEFECTDOJO_API_KEY }}
