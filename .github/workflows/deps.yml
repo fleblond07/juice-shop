@@ -16,6 +16,9 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Install dependencies
+        run: npm install
+
       - name: Install CycloneDX tool
         run: npm install -g @cyclonedx/cyclonedx-npm
 
@@ -25,7 +28,7 @@ jobs:
           cyclonedx-npm --output-format json --output-file audit-reports/sbom.json
 
       - name: Check report
-        run: ls -l audit-reports
+        run: ls -l audit-reports && head -n 20 audit-reports/sbom.json
 
       - name: Upload to DefectDojo
         run: |
