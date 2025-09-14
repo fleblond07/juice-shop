@@ -18,6 +18,7 @@ jobs:
       - name: Run npm audit
         run: |
           mkdir -p audit-reports
+          npm i --package-lock-only
           npm audit --json > audit-reports/npm-audit.json || true
 
       - name: Check report
